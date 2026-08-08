@@ -1,9 +1,37 @@
+# Virtual environment
 .venv/
-.env
+venv/
+
+# Python cache
 __pycache__/
-*.pyc
+*.py[cod]
+
+# Test / tool cache
 .pytest_cache/
-.ipynb_checkpoints/
+.mypy_cache/
+.ruff_cache/
+
+# Environment variables / secrets
+.env
+.env.*
+*.key
+*.pem
+
+# IDE
 .vscode/
-logs/
-data/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Downloaded market data
+data/spy_daily.csv
+
+# Archived experiments
+scripts/archive/
+data/results/archive/
+
+# Temporary files
+*.log
+*.tmp

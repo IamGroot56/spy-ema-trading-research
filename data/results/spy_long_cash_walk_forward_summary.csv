@@ -1,0 +1,2 @@
+initial_equity,final_equity,overall_return_pct,number_of_folds,profitable_folds,losing_folds,flat_folds,total_oos_trades,average_fold_return_pct,worst_fold_drawdown_pct
+1000.0,1046.7310789759806,4.67310789759805,5,4,1,0,21,0.924604867057397,1.3658382337706045
