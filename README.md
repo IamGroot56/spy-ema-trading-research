@@ -1,6 +1,7 @@
 # SPY EMA Trend-Following Research
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
+[![Tests](https://github.com/IamGroot56/spy-ema-trading-research/actions/workflows/tests.yml/badge.svg)](https://github.com/IamGroot56/spy-ema-trading-research/actions/workflows/tests.yml)
 ![Research](https://img.shields.io/badge/focus-systematic%20trading-orange)
 ![Status](https://img.shields.io/badge/status-V1%20complete-brightgreen)
 
