@@ -35,3 +35,6 @@ data/results/archive/
 # Temporary files
 *.log
 *.tmp
+# Analytics database (rebuilt from data/results)
+data/research.duckdb
+data/research.duckdb.wal

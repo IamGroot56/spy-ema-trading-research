@@ -235,6 +235,49 @@ The fixed EMA strategy reduced maximum drawdown to 2.21%, but its 6.18% return w
 
 ---
 
+## SQL Analytics Layer (DuckDB)
+
+The backtester writes its results as CSV files. `src/analytics_db.py` loads them into a DuckDB database, and `sql/analytics_views.sql` defines the analysis as SQL views:
+
+| View | What it computes | SQL techniques |
+|---|---|---|
+| `daily_returns` | Daily return per strategy | `LAG` window |
+| `drawdowns` | Running peak and drawdown | running `MAX` window |
+| `strategy_summary` | Return, CAGR, max drawdown, Return/MDD, volatility, Sharpe | CTEs, aggregates, `ARG_MAX` |
+| `monthly_returns` / `yearly_performance` | Calendar returns, in-year drawdown, excess return vs. benchmark | compounding with `EXP(SUM(LN(1 + r)))`, `FIRST_VALUE` |
+| `rolling_quarter` | 63-day rolling volatility and return | named `WINDOW` with a row frame |
+| `parameter_ranking` / `best_stop_per_ema_pair` | Ranks the parameter sweep by Return/MDD and keeps the best stop per EMA pair | `RANK`, `ROW_NUMBER`, `QUALIFY` |
+| `fold_stability` | Which parameters each walk-forward fold picked and whether they changed | `LAG`, cumulative compounding |
+
+The SQL results are tested against the Python outputs: `tests/test_analytics_db.py` checks that the SQL recomputation reproduces the saved final equity, return, CAGR, max drawdown, and Return/MDD for every strategy, and that monthly and yearly returns compound back to the total return.
+
+Build the database and print the summary:
+
+```bash
+python -m scripts.build_analytics_db
+```
+
+Query it directly:
+
+```python
+import duckdb
+
+con = duckdb.connect("data/research.duckdb")
+con.sql("SELECT * FROM yearly_performance ORDER BY year, strategy").show()
+```
+
+### Dashboard
+
+`app/dashboard.py` is a Streamlit dashboard that reads only from these views: headline metrics, equity and drawdown curves, calendar-year returns, a monthly-return heatmap, the parameter-sweep heatmap, and walk-forward fold stability.
+
+```bash
+streamlit run app/dashboard.py
+```
+
+![Streamlit dashboard](figures/dashboard.png)
+
+---
+
 ## Project Structure
 
 ```text
@@ -248,14 +291,22 @@ spy-ema-trading-research/
 │   ├── parameter_sweep.py
 │   ├── risk_manager.py
 │   ├── strategy.py
-│   └── walk_forward.py
+│   ├── walk_forward.py
+│   └── analytics_db.py
+│
+├── sql/
+│   └── analytics_views.sql
+│
+├── app/
+│   └── dashboard.py
 │
 ├── scripts/
 │   ├── download_stock_data.py
 │   ├── run_stock_backtest.py
 │   ├── run_stock_parameter_sweep.py
 │   ├── run_stock_walk_forward.py
-│   └── generate_research_figures.py
+│   ├── generate_research_figures.py
+│   └── build_analytics_db.py
 │
 ├── tests/
 ├── figures/
@@ -264,7 +315,7 @@ spy-ema-trading-research/
 └── .gitignore
 ```
 
-Main components are separated by responsibility: data loading, feature generation, signal logic, risk management, backtesting, performance metrics, parameter search, and walk-forward evaluation.
+Main components are separated by responsibility: data loading, feature generation, signal logic, risk management, backtesting, performance metrics, parameter search, walk-forward evaluation, and SQL analytics.
 
 ---
 
@@ -315,6 +366,8 @@ python -m scripts.run_stock_backtest
 python -m scripts.run_stock_parameter_sweep
 python -m scripts.run_stock_walk_forward
 python -m scripts.generate_research_figures
+python -m scripts.build_analytics_db
+streamlit run app/dashboard.py
 ```
 
 The market-data CSV is excluded from Git because it can be reproduced using the download script.
